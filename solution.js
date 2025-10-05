@@ -1,47 +1,46 @@
 function solution(office, history) {
-  const n = office.length;
-  const m = office[0].length;
+  const N = office.length;
+  const M = office[0].length;
 
-  for (let k = 0; k < history.length; k++) {
-    const pos = String(history[k][0]).trim();
-    const val = history[k][1];
-    const dot = pos.indexOf(".");
-    if (dot <= 0) continue;
-    const r = parseInt(pos.slice(0, dot), 10);
-    const c = parseInt(pos.slice(dot + 1), 10);
-    const i = n - r;
-    const j = c - 1;
-    if (i >= 0 && i < n && j >= 0 && j < m) {
-      office[i][j] += val;
-    }
+  let activity = Array.from({ length: N }, (_, i) => [...office[i]]);
+
+  for (let [pos, change] of history) {
+    let [rStr, cStr] = pos.split(".");
+    let row = Number(rStr);
+    let col = Number(cStr);
+
+    let i = N - row;
+    let j = col - 1;
+
+    activity[i][j] += change;
   }
 
-  let maxVal = -Infinity;
-  let bestRow = 0;
-  let bestCol = 0;
-  let hasActivity = false;
+  let maxActivity = -Infinity;
+  let bestRoom = null;
 
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < m; j++) {
-      const v = office[i][j];
-      if (v > 0) hasActivity = true;
+  for (let i = N - 1; i >= 0; i--) {
+    for (let j = 0; j < M; j++) {
+      let currentActivity = activity[i][j];
+      if (currentActivity > maxActivity) {
+        maxActivity = currentActivity;
+        bestRoom = `${N - i}.${j + 1}`;
+      } else if (currentActivity === maxActivity) {
+        let currentRoom = `${N - i}.${j + 1}`;
+        let [bestR, bestC] = bestRoom.split(".").map(Number);
+        let [currR, currC] = currentRoom.split(".").map(Number);
 
-      if (v > maxVal) {
-        maxVal = v;
-        bestRow = n - i;
-        bestCol = j + 1;
-      } else if (v === maxVal && v > 0) {
-        const rowNum = n - i;
-        const colNum = j + 1;
-        if (rowNum < bestRow || (rowNum === bestRow && colNum < bestCol)) {
-          bestRow = rowNum;
-          bestCol = colNum;
+        if (currR < bestR || (currR === bestR && currC < bestC)) {
+          bestRoom = currentRoom;
         }
       }
     }
   }
 
-  return hasActivity ? `${bestRow}.${bestCol}` : null;
+  if (maxActivity <= 0) {
+    return null;
+  }
+
+  return bestRoom;
 }
 
 module.exports = solution;
